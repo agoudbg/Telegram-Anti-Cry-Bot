@@ -1,2 +1,3 @@
 # Telegram-Anti-Cry-Bot
-Simple bot that sends a message when someone sends a cry sticker. 
+A Telegram bot that warns users against sending stickers with crying emojis.  
+Made with 😅 by @agoudbg & ChatGPT. 
