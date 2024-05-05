@@ -1,6 +1,6 @@
 {
     "name": "anticrybot",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "A Telegram bot that warns users against sending stickers with crying emojis",
     "main": "index.js",
     "scripts": {
@@ -12,6 +12,7 @@
         "url": "https://github.com/agoudbg"
     },
     "dependencies": {
+        "dotenv": "^16.4.5",
         "node-telegram-bot-api": "^0.61.0"
     }
 }
