@@ -16,6 +16,7 @@ export interface TelegramMessage {
     caption?: string;
     entities?: MessageEntity[];
     caption_entities?: MessageEntity[];
+    rich_message?: unknown;
 }
 
 export type MessageWarningKind = 'sticker' | 'custom_emoji' | 'emoji';
@@ -42,6 +43,64 @@ export const CRYING_EMOJIS: readonly string[] = Object.freeze([
     '😿',
 ]);
 
+function containsCryingEmoji(text: string): boolean {
+    return CRYING_EMOJIS.some((emoji) => text.includes(emoji));
+}
+
+function inspectRichValue(value: unknown): MessageWarningKind | null {
+    if (typeof value === 'string') {
+        return containsCryingEmoji(value) ? 'emoji' : null;
+    }
+
+    if (Array.isArray(value)) {
+        let hasCryingEmoji = false;
+
+        for (const item of value) {
+            const warningKind = inspectRichValue(item);
+
+            if (warningKind === 'custom_emoji') {
+                return warningKind;
+            }
+
+            if (warningKind === 'emoji') {
+                hasCryingEmoji = true;
+            }
+        }
+
+        return hasCryingEmoji ? 'emoji' : null;
+    }
+
+    if (value === null || typeof value !== 'object') {
+        return null;
+    }
+
+    const object = value as Record<string, unknown>;
+
+    if (
+        object.type === 'custom_emoji' &&
+        typeof object.alternative_text === 'string' &&
+        containsCryingEmoji(object.alternative_text)
+    ) {
+        return 'custom_emoji';
+    }
+
+    let hasCryingEmoji = false;
+
+    for (const child of Object.values(object)) {
+        const warningKind = inspectRichValue(child);
+
+        if (warningKind === 'custom_emoji') {
+            return warningKind;
+        }
+
+        if (warningKind === 'emoji') {
+            hasCryingEmoji = true;
+        }
+    }
+
+    return hasCryingEmoji ? 'emoji' : null;
+}
+
 export function inspectMessage(message: TelegramMessage): MessageWarning | null {
     if (message.sticker) {
         if (message.sticker.emoji && CRYING_EMOJIS.includes(message.sticker.emoji)) {
@@ -52,6 +111,22 @@ export function inspectMessage(message: TelegramMessage): MessageWarning | null 
         }
 
         return null;
+    }
+
+    const richWarningKind = inspectRichValue(message.rich_message);
+
+    if (richWarningKind === 'custom_emoji') {
+        return {
+            kind: 'custom_emoji',
+            text: '请不要发送带有哭泣表情符号的自定义表情符号。',
+        };
+    }
+
+    if (richWarningKind === 'emoji') {
+        return {
+            kind: 'emoji',
+            text: '请不要发送带有哭泣表情符号的消息。',
+        };
     }
 
     const text = message.text ?? message.caption;
@@ -76,7 +151,7 @@ export function inspectMessage(message: TelegramMessage): MessageWarning | null 
         }
     }
 
-    if (CRYING_EMOJIS.some((emoji) => text.includes(emoji))) {
+    if (containsCryingEmoji(text)) {
         return {
             kind: 'emoji',
             text: '请不要发送带有哭泣表情符号的消息。',

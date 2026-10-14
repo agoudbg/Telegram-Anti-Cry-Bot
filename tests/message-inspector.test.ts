@@ -101,6 +101,67 @@ test('warns about a crying Unicode emoji in captions', () => {
     );
 });
 
+test('warns about a crying Unicode emoji in rich messages', () => {
+    assert.deepEqual(
+        inspectMessage({
+            ...baseMessage,
+            rich_message: {
+                blocks: [
+                    {
+                        type: 'paragraph',
+                        text: ['Status: ', { type: 'bold', text: '😭' }],
+                    },
+                ],
+            },
+        }),
+        {
+            kind: 'emoji',
+            text: '请不要发送带有哭泣表情符号的消息。',
+        },
+    );
+});
+
+test('warns about a crying custom emoji in rich messages', () => {
+    assert.deepEqual(
+        inspectMessage({
+            ...baseMessage,
+            rich_message: {
+                blocks: [
+                    {
+                        type: 'paragraph',
+                        text: {
+                            type: 'custom_emoji',
+                            custom_emoji_id: '123',
+                            alternative_text: '😢',
+                        },
+                    },
+                ],
+            },
+        }),
+        {
+            kind: 'custom_emoji',
+            text: '请不要发送带有哭泣表情符号的自定义表情符号。',
+        },
+    );
+});
+
+test('ignores non-crying rich messages', () => {
+    assert.equal(
+        inspectMessage({
+            ...baseMessage,
+            rich_message: {
+                blocks: [
+                    {
+                        type: 'paragraph',
+                        text: 'hello 🙂',
+                    },
+                ],
+            },
+        }),
+        null,
+    );
+});
+
 test('ignores ordinary entities and messages without text', () => {
     assert.equal(
         inspectMessage({
