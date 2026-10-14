@@ -8,8 +8,6 @@
         "outDir": "./dist",
         "rootDir": "./",
         "strict": true,
-        "allowJs": true,
-        "checkJs": true,
         "esModuleInterop": true,
         "skipLibCheck": true,
         "forceConsistentCasingInFileNames": true,
@@ -18,7 +16,7 @@
     },
     "include": [
         "index.ts",
-        "tgcloud/lib/**/*.js"
+        "src/serverless/lib/**/*.ts"
     ],
     "exclude": [
         "node_modules",

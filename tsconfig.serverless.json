@@ -1,0 +1,18 @@
+{
+    "extends": "./tsconfig.json",
+    "compilerOptions": {
+        "outDir": "./tgcloud",
+        "rootDir": "./src/serverless",
+        "declaration": false,
+        "sourceMap": false,
+        "noEmitOnError": true
+    },
+    "include": [
+        "src/serverless/**/*.ts"
+    ],
+    "exclude": [
+        "node_modules",
+        "dist",
+        "tests"
+    ]
+}

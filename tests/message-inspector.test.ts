@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { inspectMessage } from '../tgcloud/lib/message-inspector.js';
+import { inspectMessage } from '../src/serverless/lib/message-inspector.js';
 
 const baseMessage = {
     chat: { id: 1 },

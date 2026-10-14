@@ -1,6 +1,6 @@
 import { Bot } from 'grammy';
 import 'dotenv/config';
-import { inspectMessage } from './tgcloud/lib/message-inspector.js';
+import { inspectMessage } from './src/serverless/lib/message-inspector.js';
 
 const token = process.env.TOKEN;
 
