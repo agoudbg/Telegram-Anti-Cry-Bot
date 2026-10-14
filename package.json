@@ -1,6 +1,6 @@
 {
     "name": "anticrybot",
-    "version": "2.0.0",
+    "version": "3.0.0",
     "description": "A Telegram bot that warns users about crying stickers, emojis, and Rich Messages",
     "type": "module",
     "main": "dist/index.js",
