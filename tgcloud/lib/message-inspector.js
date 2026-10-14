@@ -26,10 +26,10 @@ export function inspectMessage(message) {
     }
     const text = message.text ?? message.caption;
     const entities = message.entities ?? message.caption_entities;
-    if (!text || !entities) {
+    if (!text) {
         return null;
     }
-    for (const entity of entities) {
+    for (const entity of entities ?? []) {
         if (entity.type !== 'custom_emoji') {
             continue;
         }
@@ -40,6 +40,12 @@ export function inspectMessage(message) {
                 text: '请不要发送带有哭泣表情符号的自定义表情符号。',
             };
         }
+    }
+    if (CRYING_EMOJIS.some((emoji) => text.includes(emoji))) {
+        return {
+            kind: 'emoji',
+            text: '请不要发送带有哭泣表情符号的消息。',
+        };
     }
     return null;
 }

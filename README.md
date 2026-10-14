@@ -1,6 +1,6 @@
 # Telegram-Anti-Cry-Bot
 
-A Telegram bot that warns users against sending stickers or custom emojis associated with crying.
+A Telegram bot that warns users when messages contain crying stickers, Unicode emojis, or custom emojis.
 
 The message policy is implemented in TypeScript under `src/serverless/` and compiled for two runtime adapters:
 

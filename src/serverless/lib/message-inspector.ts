@@ -18,7 +18,7 @@ export interface TelegramMessage {
     caption_entities?: MessageEntity[];
 }
 
-export type MessageWarningKind = 'sticker' | 'custom_emoji';
+export type MessageWarningKind = 'sticker' | 'custom_emoji' | 'emoji';
 
 export interface MessageWarning {
     kind: MessageWarningKind;
@@ -57,11 +57,11 @@ export function inspectMessage(message: TelegramMessage): MessageWarning | null 
     const text = message.text ?? message.caption;
     const entities = message.entities ?? message.caption_entities;
 
-    if (!text || !entities) {
+    if (!text) {
         return null;
     }
 
-    for (const entity of entities) {
+    for (const entity of entities ?? []) {
         if (entity.type !== 'custom_emoji') {
             continue;
         }
@@ -74,6 +74,13 @@ export function inspectMessage(message: TelegramMessage): MessageWarning | null 
                 text: '请不要发送带有哭泣表情符号的自定义表情符号。',
             };
         }
+    }
+
+    if (CRYING_EMOJIS.some((emoji) => text.includes(emoji))) {
+        return {
+            kind: 'emoji',
+            text: '请不要发送带有哭泣表情符号的消息。',
+        };
     }
 
     return null;

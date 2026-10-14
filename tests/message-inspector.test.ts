@@ -75,12 +75,38 @@ test('checks custom emojis in captions', () => {
     );
 });
 
+test('warns about a crying Unicode emoji in text', () => {
+    assert.deepEqual(
+        inspectMessage({
+            ...baseMessage,
+            text: 'hello 😭',
+        }),
+        {
+            kind: 'emoji',
+            text: '请不要发送带有哭泣表情符号的消息。',
+        },
+    );
+});
+
+test('warns about a crying Unicode emoji in captions', () => {
+    assert.deepEqual(
+        inspectMessage({
+            ...baseMessage,
+            caption: '图片说明：😢',
+        }),
+        {
+            kind: 'emoji',
+            text: '请不要发送带有哭泣表情符号的消息。',
+        },
+    );
+});
+
 test('ignores ordinary entities and messages without text', () => {
     assert.equal(
         inspectMessage({
             ...baseMessage,
-            text: '😢',
-            entities: [{ type: 'text_link', offset: 0, length: 2 }],
+            text: '🙂',
+            entities: [{ type: 'text_link', offset: 0, length: '🙂'.length }],
         }),
         null,
     );
