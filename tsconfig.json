@@ -1,21 +1,24 @@
 {
     "compilerOptions": {
         "target": "ES2022",
-        "module": "commonjs",
+        "module": "NodeNext",
         "lib": [
             "ES2022"
         ],
         "outDir": "./dist",
         "rootDir": "./",
         "strict": true,
+        "allowJs": true,
+        "checkJs": true,
         "esModuleInterop": true,
         "skipLibCheck": true,
         "forceConsistentCasingInFileNames": true,
-        "moduleResolution": "node",
+        "moduleResolution": "NodeNext",
         "resolveJsonModule": true
     },
     "include": [
-        "*.ts"
+        "index.ts",
+        "tgcloud/lib/**/*.js"
     ],
     "exclude": [
         "node_modules",
