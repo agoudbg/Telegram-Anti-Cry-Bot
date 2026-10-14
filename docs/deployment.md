@@ -5,7 +5,7 @@ This project supports two deployment targets from the same repository:
 - a traditional VPS running the Node.js process with GrammY long polling;
 - Telegram Serverless running the handler under `tgcloud/`.
 
-The message policy is shared by both targets in `tgcloud/lib/message-inspector.js`. The runtime adapters are intentionally separate because the two platforms expose different update and Bot API interfaces.
+The message policy source is shared by both targets in `src/serverless/lib/message-inspector.ts`. The runtime adapters are intentionally separate because the two platforms expose different update and Bot API interfaces. `pnpm build` includes the source in the VPS bundle, while `pnpm build:serverless` compiles the Serverless source into the JavaScript files under `tgcloud/`.
 
 ## Common requirements
 
@@ -19,9 +19,10 @@ Run the checks before either deployment:
 pnpm install --frozen-lockfile
 pnpm test
 pnpm build
+pnpm build:serverless
 ```
 
-The test command uses Node's built-in test runner. The build command type-checks the TypeScript entry point and the shared JavaScript module through `checkJs`.
+The test command runs the TypeScript tests through `tsx`. The VPS build type-checks the polling entry point and shared policy. The Serverless build type-checks `src/serverless/` and emits the JavaScript deployment files under `tgcloud/`.
 
 ## Traditional VPS
 
@@ -81,7 +82,17 @@ If the bot was previously connected to Telegram Serverless, remove the Serverles
 
 ## Telegram Serverless
 
-Telegram Serverless runs the files under `tgcloud/`. The bot handler is `tgcloud/handlers/message.js`, and the shared message policy is `tgcloud/lib/message-inspector.js`.
+Telegram Serverless runs the generated JavaScript files under `tgcloud/`. The TypeScript source is under `src/serverless/`; the handler source is `src/serverless/handlers/message.ts`, and the shared message policy source is `src/serverless/lib/message-inspector.ts`.
+
+### Build the Serverless source
+
+Compile the TypeScript source before inspecting or deploying the Serverless project:
+
+```sh
+pnpm build:serverless
+```
+
+This writes `tgcloud/handlers/message.js` and `tgcloud/lib/message-inspector.js`. These generated JavaScript files are the deployment input for `tgcloud push`; edit the TypeScript files under `src/serverless/` and regenerate them instead of editing the generated files manually. The `sdk` declaration in `src/serverless/sdk.d.ts` is used only by TypeScript and is not deployed.
 
 Serverless does not use the `.env` `TOKEN` value. Bot API access is provided by the linked Telegram Serverless project, so the CLI access token and the Bot API token are separate credentials.
 
@@ -125,6 +136,7 @@ Run the repository checks first:
 ```sh
 pnpm test
 pnpm build
+pnpm build:serverless
 ```
 
 To execute the handler against local project files without publishing them, use a message that does not trigger a reply:
@@ -136,6 +148,7 @@ npx tgcloud run handlers/message '{ chat: { id: 1 }, message_id: 1, text: "hello
 Deploy the handler and the shared module atomically:
 
 ```sh
+pnpm build:serverless
 npx tgcloud status
 npx tgcloud push
 npx tgcloud webhook sync
@@ -145,7 +158,7 @@ npx tgcloud webhook sync
 
 ### Serverless runtime constraints
 
-Only JavaScript modules under `tgcloud/schema.js`, `tgcloud/lib/`, `tgcloud/handlers/`, and `tgcloud/endpoints/` are deployed as backend code. Keep Serverless code independent of `grammy`, `dotenv`, `process.env`, the local filesystem, and arbitrary npm packages.
+Only generated JavaScript modules under `tgcloud/schema.js`, `tgcloud/lib/`, `tgcloud/handlers/`, and `tgcloud/endpoints/` are deployed as backend code. Keep the TypeScript source under `src/serverless/` independent of `grammy`, `dotenv`, `process.env`, the local filesystem, and arbitrary npm packages so the generated Serverless bundle remains portable.
 
 The platform provides the Telegram Bot API through `sdk`, persistent SQLite through `sdk/db`, and outbound HTTP through `sdk/fetch`. Do not keep important state in module-level variables because a later invocation can run in a different isolate.
 
@@ -158,9 +171,10 @@ The same bot token must have exactly one active update receiver at a time.
 ### VPS to Telegram Serverless
 
 1. Stop the VPS process so it no longer polls for updates.
-2. Push the current `tgcloud/` modules.
-3. Run `npx tgcloud webhook sync`.
-4. Verify the webhook status with `npx tgcloud webhook`.
+2. Run `pnpm build:serverless` to regenerate the current `tgcloud/` modules.
+3. Push the generated modules with `npx tgcloud push`.
+4. Run `npx tgcloud webhook sync`.
+5. Verify the webhook status with `npx tgcloud webhook`.
 
 ### Telegram Serverless to VPS
 

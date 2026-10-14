@@ -2,7 +2,7 @@
 
 A Telegram bot that warns users against sending stickers or custom emojis associated with crying.
 
-The repository contains one portable message-inspection module and two runtime adapters:
+The message policy is implemented in TypeScript under `src/serverless/` and compiled for two runtime adapters:
 
 - GrammY with long polling for a traditional VPS.
 - Telegram Serverless handlers for Telegram-managed webhook delivery.
@@ -15,7 +15,10 @@ Requirements: Node.js 18 or newer and pnpm.
 pnpm install --frozen-lockfile
 pnpm test
 pnpm build
+pnpm build:serverless
 ```
+
+`pnpm build` produces the VPS bundle under `dist/`. `pnpm build:serverless` compiles the Serverless TypeScript source into the JavaScript modules under `tgcloud/` that are uploaded by the Telegram Serverless CLI.
 
 For VPS-style local development, create a `.env` file with the Bot API token:
 
