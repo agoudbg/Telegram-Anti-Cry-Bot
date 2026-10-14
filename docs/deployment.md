@@ -84,6 +84,13 @@ If the bot was previously connected to Telegram Serverless, remove the Serverles
 
 Telegram Serverless runs the generated JavaScript files under `tgcloud/`. The TypeScript source is under `src/serverless/`; the handler source is `src/serverless/handlers/message.ts`, and the shared message policy source is `src/serverless/lib/message-inspector.ts`.
 
+Install the CLI once on each machine that deploys this repository:
+
+```sh
+npm install --global @tgcloud/cli@0.2.0
+tgcloud --version
+```
+
 ### Build the Serverless source
 
 Compile the TypeScript source before inspecting or deploying the Serverless project:
@@ -106,25 +113,15 @@ In `@BotFather`:
 
 The CLI access token is used for deployment. Treat it as a secret and do not commit the `.tgcloud/` directory.
 
-### Initialize the project locally
+### Link a checkout to the bot
 
-The official project creator can initialize an existing project without overwriting the files already in this repository:
+This repository already contains `tgcloud.jsonc`, `tgcloud/schema.js`, and the generated handler modules. A clean checkout does not need `tgcloud init`; that command only scaffolds a new or incomplete local project. The project creator is not part of the deployment flow for this repository.
 
-```sh
-npm create @tgcloud/bot .
-```
-
-If the CLI is already installed in the project, initialize or inspect it with:
+Link the checkout with the CLI access token from BotFather:
 
 ```sh
-npx tgcloud init
-npx tgcloud status
-```
-
-Complete the login step with the CLI access token from BotFather:
-
-```sh
-npx tgcloud login
+tgcloud login
+tgcloud status
 ```
 
 The CLI stores local credentials under `.tgcloud/`, which is ignored by this repository.
@@ -142,19 +139,17 @@ pnpm build:serverless
 To execute the handler against local project files without publishing them, use a message that does not trigger a reply:
 
 ```sh
-npx tgcloud run handlers/message '{ chat: { id: 1 }, message_id: 1, text: "hello" }'
+tgcloud run handlers/message '{ chat: { id: 1 }, message_id: 1, text: "hello" }'
 ```
 
-Deploy the handler and the shared module atomically:
+The normal deployment command builds the TypeScript source and pushes the generated JavaScript:
 
 ```sh
-pnpm build:serverless
-npx tgcloud status
-npx tgcloud push
-npx tgcloud webhook sync
+pnpm run deploy
+tgcloud webhook
 ```
 
-`webhook sync` points Telegram at the Serverless platform and rebuilds the allowed update list from the deployed handlers. Deploying a new handler can leave the webhook out of sync until this command is run.
+`pnpm run deploy` runs the Serverless build script and then calls `tgcloud push`. Run `tgcloud webhook` after the deployment to inspect the active webhook. If it reports a mismatch, run `tgcloud webhook sync` and check the status again.
 
 ### Serverless runtime constraints
 
@@ -171,10 +166,9 @@ The same bot token must have exactly one active update receiver at a time.
 ### VPS to Telegram Serverless
 
 1. Stop the VPS process so it no longer polls for updates.
-2. Run `pnpm build:serverless` to regenerate the current `tgcloud/` modules.
-3. Push the generated modules with `npx tgcloud push`.
-4. Run `npx tgcloud webhook sync`.
-5. Verify the webhook status with `npx tgcloud webhook`.
+2. Run `pnpm run deploy` to regenerate and push the current `tgcloud/` modules.
+3. Verify the webhook status with `tgcloud webhook`.
+4. If the status reports a mismatch, run `tgcloud webhook sync` and verify it again.
 
 ### Telegram Serverless to VPS
 
