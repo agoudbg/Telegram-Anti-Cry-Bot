@@ -151,6 +151,16 @@ tgcloud webhook
 
 `pnpm run deploy` runs the Serverless build script and then calls `tgcloud push`. Run `tgcloud webhook` after the deployment to inspect the active webhook. If it reports a mismatch, run `tgcloud webhook sync` and check the status again.
 
+### GitHub Actions deployment
+
+The repository includes `.github/workflows/deploy-serverless.yml`. It runs the tests, the VPS type-check build, and the Serverless TypeScript build for every push to `main` and for manual workflow dispatches. It publishes to Telegram Serverless only when the `TGCLOUD_TOKEN` Actions secret is configured.
+
+Create a repository secret named `TGCLOUD_TOKEN` with the CLI access token from BotFather (`your bot` -> `Serverless` -> `CLI Access` -> `Access token`). The workflow passes this secret only to `tgcloud fetch` and `tgcloud push`; it does not run the interactive `tgcloud login` command. When the secret is missing, validation still runs and the deployment steps report that publication was skipped.
+
+Each Actions run starts from a clean checkout, so the workflow runs `tgcloud fetch` before `tgcloud push`. This refreshes the local `.tgcloud/` snapshot without changing the checked-out files and lets `push` perform its remote revision check. The workflow never uses `--force`.
+
+This workflow deploys the Telegram Serverless target only. It does not start, stop, or update the VPS service. Keep the same bot on one update receiver at a time: stop the VPS long-polling process before switching the bot to the Serverless webhook, following the switching procedure above.
+
 ### Serverless runtime constraints
 
 Only generated JavaScript modules under `tgcloud/schema.js`, `tgcloud/lib/`, `tgcloud/handlers/`, and `tgcloud/endpoints/` are deployed as backend code. Keep the TypeScript source under `src/serverless/` independent of `grammy`, `dotenv`, `process.env`, the local filesystem, and arbitrary npm packages so the generated Serverless bundle remains portable.
